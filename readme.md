@@ -201,3 +201,6 @@ try{
 }
 
 ```
+
+## demo 获取友情链接，如果可以获取到数据，说明api接口可以调通
+curl http://apiv4.yundun.com/V4/site.friendlink
