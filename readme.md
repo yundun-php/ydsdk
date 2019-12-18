@@ -23,7 +23,7 @@
 +   依赖composer
          
 ##使用步骤
-1.	composer require yundun/yundunsdk
+1.	composer require yd/ydsdk
 
 2.	实例化
 
