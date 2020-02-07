@@ -100,20 +100,34 @@ class YunDunSdk
      */
     public function signedRequest(RawRequest $request)
     {
+        $body = [];
+        $body_string= '';
         if ('json' == $request->getBodyType()) {
-            $payload['body'] = $request->getBody();
-            $body            = $request->getBody();
+            $body = $request->getBody();
         } elseif ('array' == $request->getBodyType()) {
-            $payload['body'] = $request->getBody();
-            $body            = RawRequest::build_query($payload);
+            $body = $request->getBody();
         }
         if ('GET' == strtoupper($request->getMethod())) {
-            $payload['body'] = $request->getUrlParams();
-            $body            = RawRequest::build_query($payload);
+            $body = $request->getUrlParams();
         }
+        $body['algorithm'] = isset($body['algorithm']) ? $body['algorithm'] : 'HMAC-SHA256';
+        $body['issued_at'] = isset($body['issued_at']) ? $body['issued_at'] : time();
+
+        $paramsRequest =$body;
+        unset($paramsRequest['_route_']);
+        unset($paramsRequest['_files']);
 
         //签名
-        $sign = SignedRequest::make($payload, $this->app_secret);
+        $sign = SignedRequest::make($paramsRequest, $this->app_secret);
+        if ('json' == $request->getBodyType()) {
+            $body_string            = json_encode($body);
+        } elseif ('array' == $request->getBodyType()) {
+            $body_string            = RawRequest::build_query($body);
+        }
+        if ('GET' == strtoupper($request->getMethod())) {
+            $this->request->setUrlParams($body);
+            $body_string            = RawRequest::build_query($body);
+        }
         $this->request->setHeader('X-Auth-Sign', $sign);
         $this->request->setHeader('X-Auth-App-Id', $this->app_id);
         $url     = $request->getUrl();
@@ -123,7 +137,7 @@ class YunDunSdk
         $options = $request->getOptions();
         $this->log('请求参数-request对象-' . print_r($request, true));
 
-        $RawResponse = $this->http_client_handler->send($url, $method, $body, $headers, $timeOut, $options);
+        $RawResponse = $this->http_client_handler->send($url, $method, $body_string, $headers, $timeOut, $options);
 
         return $RawResponse;
     }

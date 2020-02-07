@@ -29,14 +29,15 @@ class SignedRequest
      * @param string|null $state            random string to prevent CSRF.
      * @param string|null $appSecret
      */
-    public function __construct($rawSignedRequest = null, $state = null, $appSecret = null)
+    public function __construct($rawSignedRequest = null, $state = null, $appSecret = null,$paramsRequest=[])
     {
         if (!$rawSignedRequest) {
             return;
         }
 
         $this->rawSignedRequest = $rawSignedRequest;
-        $this->payload          = static::parse($rawSignedRequest, $state, $appSecret);
+//        $this->payload          = static::parse($rawSignedRequest, $state, $appSecret);
+        static::parse($rawSignedRequest, $state, $appSecret,$paramsRequest);
     }
 
     /**
@@ -106,14 +107,25 @@ class SignedRequest
      */
     public static function make(array $payload, $appSecret = null)
     {
-        $payload['algorithm'] = isset($payload['algorithm']) ? $payload['algorithm'] : 'HMAC-SHA256';
-        $payload['issued_at'] = isset($payload['issued_at']) ? $payload['issued_at'] : time();
-        $encodedPayload       = static::base64UrlEncode(json_encode($payload));
+        $payload = self::makeString($payload);
+        ksort($payload);
+        $encodedPayload       = static::base64UrlEncode(json_encode($payload,JSON_UNESCAPED_SLASHES));
 
         $hashedSig  = static::hashSignature($encodedPayload, $appSecret);
         $encodedSig = static::base64UrlEncode($hashedSig);
 
-        return $encodedSig.'.'.$encodedPayload;
+        return $encodedSig;
+    }
+
+    static  function  makeString($params=[]){
+        foreach ($params as $k=>$v){
+            if(is_array($v)){
+                $params[$k]= self::makeString($v);
+            }else{
+                $params[$k] = (string)$v;
+            }
+        }
+        return $params;
     }
 
     /**
@@ -126,23 +138,13 @@ class SignedRequest
      *
      * @return array
      */
-    public static function parse($signedRequest, $state = null, $appSecret = null)
+    public static function parse($signedRequest, $state = null, $appSecret = null,$paramsRequest=[])
     {
-        list($encodedSig, $encodedPayload) = static::split($signedRequest);
-
-        // Signature validation
-        $sig       = static::decodeSignature($encodedSig);
+        ksort($paramsRequest);
+        $encodedPayload       = static::base64UrlEncode(json_encode($paramsRequest));
         $hashedSig = static::hashSignature($encodedPayload, $appSecret);
-        static::validateSignature($hashedSig, $sig);
-
-        // Payload validation
-        $data = static::decodePayload($encodedPayload);
-        static::validateAlgorithm($data);
-        if ($state) {
-            static::validateCsrf($data, $state);
-        }
-
-        return $data;
+        $sig = static::base64UrlEncode($hashedSig);
+        static::validateSignature($sig, $signedRequest);
     }
 
     /**
