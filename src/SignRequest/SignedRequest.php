@@ -141,7 +141,7 @@ class SignedRequest
     public static function parse($signedRequest, $state = null, $appSecret = null,$paramsRequest=[])
     {
         ksort($paramsRequest);
-        $encodedPayload       = static::base64UrlEncode(json_encode($paramsRequest));
+        $encodedPayload       = static::base64UrlEncode(json_encode($paramsRequest,JSON_UNESCAPED_SLASHES));
         $hashedSig = static::hashSignature($encodedPayload, $appSecret);
         $sig = static::base64UrlEncode($hashedSig);
         static::validateSignature($sig, $signedRequest);
