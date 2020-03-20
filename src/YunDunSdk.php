@@ -23,7 +23,7 @@ use YunDunSdk\HttpClients\HttpClientsFactory;
 class YunDunSdk
 {
     const __BASE_API_URL__ = 'http://api.yundun.cn/V1/';
-
+    const SDK_VERSION = "1.0.3";
     private $app_id; //必需
     private $app_secret; //必需
     private $user_id; // 用户id, 仅代理需要
@@ -122,7 +122,7 @@ class YunDunSdk
         if ('json' == $request->getBodyType()) {
             $body_string            = json_encode($body);
         } elseif ('array' == $request->getBodyType()) {
-            $body_string            = RawRequest::build_query($body);
+            $body_string            = json_encode($body);
         }
         if ('GET' == strtoupper($request->getMethod())) {
             $this->request->setUrlParams($body);
@@ -130,6 +130,7 @@ class YunDunSdk
         }
         $this->request->setHeader('X-Auth-Sign', $sign);
         $this->request->setHeader('X-Auth-App-Id', $this->app_id);
+        $this->request->setHeader('X-Auth-Sdk-Version', self::SDK_VERSION);
         $url     = $request->getUrl();
         $method  = $request->getMethod();
         $headers = $request->getHeaders();

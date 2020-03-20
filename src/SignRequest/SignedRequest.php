@@ -29,15 +29,18 @@ class SignedRequest
      * @param string|null $state            random string to prevent CSRF.
      * @param string|null $appSecret
      */
-    public function __construct($rawSignedRequest = null, $state = null, $appSecret = null,$paramsRequest=[])
+    public function __construct($rawSignedRequest = null, $state = null, $appSecret = null,$paramsRequest=[],$sdkVersion = nul)
     {
         if (!$rawSignedRequest) {
             return;
         }
 
         $this->rawSignedRequest = $rawSignedRequest;
-//        $this->payload          = static::parse($rawSignedRequest, $state, $appSecret);
-        static::parse($rawSignedRequest, $state, $appSecret,$paramsRequest);
+        if($sdkVersion){
+            static::parse($rawSignedRequest, $state, $appSecret,$paramsRequest);
+        }else{
+            $this->payload          = static::parseCompatible($rawSignedRequest, $state, $appSecret);
+        }
     }
 
     /**
@@ -140,6 +143,7 @@ class SignedRequest
      */
     public static function parse($signedRequest, $state = null, $appSecret = null,$paramsRequest=[])
     {
+        $paramsRequest = self::makeString($paramsRequest);
         ksort($paramsRequest);
         $encodedPayload       = static::base64UrlEncode(json_encode($paramsRequest,JSON_UNESCAPED_SLASHES));
         $hashedSig = static::hashSignature($encodedPayload, $appSecret);
@@ -147,6 +151,34 @@ class SignedRequest
         static::validateSignature($sig, $signedRequest);
     }
 
+    /**
+     * Validates and decodes a signed request and returns  Compatible oldversion
+     * the payload as an array.
+     *
+     * @param string      $signedRequest
+     * @param string|null $state
+     * @param string|null $appSecret
+     *
+     * @return array
+     */
+    public static function parseCompatible($signedRequest, $state = null, $appSecret = null)
+    {
+        list($encodedSig, $encodedPayload) = static::split($signedRequest);
+
+        // Signature validation
+        $sig       = static::decodeSignature($encodedSig);
+        $hashedSig = static::hashSignature($encodedPayload, $appSecret);
+        static::validateSignature($hashedSig, $sig);
+
+        // Payload validation
+        $data = static::decodePayload($encodedPayload);
+        static::validateAlgorithm($data);
+        if ($state) {
+            static::validateCsrf($data, $state);
+        }
+
+        return $data;
+    }
     /**
      * Validates the format of a signed request.
      *
