@@ -29,7 +29,8 @@ class SignedRequest
      * @param string|null $state            random string to prevent CSRF.
      * @param string|null $appSecret
      */
-    public function __construct($rawSignedRequest = null, $state = null, $appSecret = null,$paramsRequest=[],$sdkVersion = nul)
+    public function __construct($rawSignedRequest = null, $state = null, $appSecret = null,
+        $paramsRequest = [], $sdkVersion = null, $rMethod = "GET")
     {
         if (!$rawSignedRequest) {
             return;
@@ -37,7 +38,7 @@ class SignedRequest
 
         $this->rawSignedRequest = $rawSignedRequest;
         if($sdkVersion){
-            static::parse($rawSignedRequest, $state, $appSecret,$paramsRequest);
+            static::parse($rawSignedRequest, $state, $appSecret,$paramsRequest,$rMethod);
         }else{
             $this->payload          = static::parseCompatible($rawSignedRequest, $state, $appSecret);
         }
@@ -108,9 +109,11 @@ class SignedRequest
      *
      * @return string
      */
-    public static function make(array $payload, $appSecret = null)
+    public static function make(array $payload, $appSecret = null, $rMethod = "GET")
     {
-        $payload = self::makeString($payload);
+        if($rMethod=="GET"){
+            $payload = self::makeString($payload);
+        }
         ksort($payload);
         $encodedPayload       = static::base64UrlEncode(json_encode($payload,JSON_UNESCAPED_SLASHES));
 
@@ -141,9 +144,12 @@ class SignedRequest
      *
      * @return array
      */
-    public static function parse($signedRequest, $state = null, $appSecret = null,$paramsRequest=[])
+    public static function parse($signedRequest, $state = null, $appSecret = null,
+        $paramsRequest = [], $rMethod = "GET")
     {
-        $paramsRequest = self::makeString($paramsRequest);
+        if ($rMethod == "GET") {
+            $paramsRequest = self::makeString($paramsRequest);
+        }
         ksort($paramsRequest);
         $encodedPayload       = static::base64UrlEncode(json_encode($paramsRequest,JSON_UNESCAPED_SLASHES));
         $hashedSig = static::hashSignature($encodedPayload, $appSecret);

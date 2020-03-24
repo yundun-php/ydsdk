@@ -107,7 +107,8 @@ class YunDunSdk
         } elseif ('array' == $request->getBodyType()) {
             $body = $request->getBody();
         }
-        if ('GET' == strtoupper($request->getMethod())) {
+        $rMethod= strtoupper($request->getMethod());
+        if ('GET' == $rMethod) {
             $body = $request->getUrlParams();
         }
         $body['algorithm'] = isset($body['algorithm']) ? $body['algorithm'] : 'HMAC-SHA256';
@@ -118,13 +119,13 @@ class YunDunSdk
         unset($paramsRequest['_files']);
 
         //签名
-        $sign = SignedRequest::make($paramsRequest, $this->app_secret);
+        $sign = SignedRequest::make($paramsRequest, $this->app_secret,$rMethod);
         if ('json' == $request->getBodyType()) {
             $body_string            = json_encode($body);
         } elseif ('array' == $request->getBodyType()) {
             $body_string            = json_encode($body);
         }
-        if ('GET' == strtoupper($request->getMethod())) {
+        if ('GET' == $rMethod) {
             $this->request->setUrlParams($body);
             $body_string            = RawRequest::build_query($body);
         }
