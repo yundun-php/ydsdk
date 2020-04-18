@@ -107,6 +107,7 @@ class YunDunSdk
         } elseif ('array' == $request->getBodyType()) {
             $body = $request->getBody();
         }
+        $body = array_merge($body,$request->getUrlParams());
         $rMethod= strtoupper($request->getMethod());
         if ('GET' == $rMethod) {
             $body = $request->getUrlParams();
@@ -117,7 +118,10 @@ class YunDunSdk
         $paramsRequest =$body;
         unset($paramsRequest['_route_']);
         unset($paramsRequest['_files']);
-
+        unset($paramsRequest['command']);
+        if( isset($paramsRequest['route'])){
+            unset($paramsRequest['route']);
+        }
         //签名
         $sign = SignedRequest::make($paramsRequest, $this->app_secret,$rMethod);
         if ('json' == $request->getBodyType()) {
