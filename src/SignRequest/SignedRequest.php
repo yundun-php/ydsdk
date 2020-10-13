@@ -109,13 +109,14 @@ class SignedRequest
      *
      * @return string
      */
-    public static function make(array $payload, $appSecret = null, $rMethod = "GET")
-    {
-        if($rMethod=="GET"){
+    public static function make(array $payload, $appSecret = null, $rMethod = "GET") {
+        if ($rMethod == "GET") {
             $payload = self::makeString($payload);
         }
         ksort($payload);
-        $encodedPayload       = static::base64UrlEncode(json_encode($payload,JSON_UNESCAPED_SLASHES));
+        $encodedPayload = static::base64UrlEncode(
+            json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_PRESERVE_ZERO_FRACTION)
+        );
 
         $hashedSig  = static::hashSignature($encodedPayload, $appSecret);
         $encodedSig = static::base64UrlEncode($hashedSig);
@@ -145,15 +146,16 @@ class SignedRequest
      * @return array
      */
     public static function parse($signedRequest, $state = null, $appSecret = null,
-        $paramsRequest = [], $rMethod = "GET")
-    {
+        $paramsRequest = [], $rMethod = "GET") {
         if ($rMethod == "GET") {
             $paramsRequest = self::makeString($paramsRequest);
         }
         ksort($paramsRequest);
-        $encodedPayload       = static::base64UrlEncode(json_encode($paramsRequest,JSON_UNESCAPED_SLASHES));
-        $hashedSig = static::hashSignature($encodedPayload, $appSecret);
-        $sig = static::base64UrlEncode($hashedSig);
+        $encodedPayload = static::base64UrlEncode(
+            json_encode($paramsRequest, JSON_UNESCAPED_SLASHES | JSON_PRESERVE_ZERO_FRACTION)
+        );
+        $hashedSig      = static::hashSignature($encodedPayload, $appSecret);
+        $sig            = static::base64UrlEncode($hashedSig);
         static::validateSignature($sig, $signedRequest);
     }
 
