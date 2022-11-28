@@ -22,7 +22,6 @@ use YunDunSdk\HttpClients\HttpClientsFactory;
 
 class YunDunSdk
 {
-    const __BASE_API_URL__ = 'http://api.yundun.cn/V1/';
     const SDK_VERSION = "1.0.3";
     private $app_id; //必需
     private $app_secret; //必需
@@ -54,13 +53,15 @@ class YunDunSdk
         if (!is_array($param)) {
             throw new YunDunSdkException('param must be array');
         }
+        $param['client_userAgent'] = isset($param['client_userAgent']) ? trim($param['client_userAgent']) : '';
+        $defaultUserAgent = sprintf('Sdk %s; php/%s; %s %s', self::SDK_VERSION, phpversion(), php_uname('s'), php_uname('r'));
         $this->config           = $param;
         $this->app_id           = $param['app_id'];
         $this->app_secret       = $param['app_secret'];
         $this->user_id          = (int)$param['user_id'];
         $this->client_ip        = isset($param['client_ip']) ? trim($param['client_ip']) : '';
-        $this->client_userAgent = isset($param['client_userAgent']) ? trim($param['client_userAgent']) : '';
-        $this->base_api_url     = isset($param['base_api_url']) && !empty($param['base_api_url']) ? $param['base_api_url'] : self::__BASE_API_URL__;
+        $this->client_userAgent = $param['client_userAgent'] ? $param['client_userAgent'] : $defaultUserAgent;
+        $this->base_api_url     = isset($param['base_api_url']) ? trim($param['base_api_url']) : '';
         $this->host             = isset($param['host']) && !empty($param['host']) ? $param['host'] : '';
         if (isset($param['syncExceptionOutputCode'])) {
             $this->syncExceptionOutput['code'] = $param['syncExceptionOutputCode'];
@@ -178,7 +179,7 @@ class YunDunSdk
             'user_id'          => $this->user_id,
             'client_ip'        => $this->client_ip,
             'client_userAgent' => $this->client_userAgent,
-            'fromadmin'        => isset($_SESSION['fromadmin']) ? isset($_SESSION['fromadmin']) : null,
+            'fromadmin'        => isset($_SESSION['fromadmin']) ? intval($_SESSION['fromadmin']) : 0,
         ];
 
         foreach ($request['headers'] as $h => $v) {

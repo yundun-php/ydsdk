@@ -115,7 +115,7 @@ class SignedRequest
             $payload = self::makeString($payload);
         }
         ksort($payload);
-        $encodedPayload       = static::base64UrlEncode(json_encode($payload,JSON_UNESCAPED_SLASHES));
+        $encodedPayload       = static::base64UrlEncode(json_encode($payload,JSON_UNESCAPED_SLASHES | JSON_PRESERVE_ZERO_FRACTION));
 
         $hashedSig  = static::hashSignature($encodedPayload, $appSecret);
         $encodedSig = static::base64UrlEncode($hashedSig);
@@ -151,10 +151,21 @@ class SignedRequest
             $paramsRequest = self::makeString($paramsRequest);
         }
         ksort($paramsRequest);
-        $encodedPayload       = static::base64UrlEncode(json_encode($paramsRequest,JSON_UNESCAPED_SLASHES));
-        $hashedSig = static::hashSignature($encodedPayload, $appSecret);
-        $sig = static::base64UrlEncode($hashedSig);
-        static::validateSignature($sig, $signedRequest);
+        try {
+            $encodedPayload = static::base64UrlEncode(
+                json_encode($paramsRequest, JSON_UNESCAPED_SLASHES | JSON_PRESERVE_ZERO_FRACTION)
+            );
+            $hashedSig      = static::hashSignature($encodedPayload, $appSecret);
+            $sig            = static::base64UrlEncode($hashedSig);
+            static::validateSignature($sig, $signedRequest);
+        }catch (\Exception $e){
+            $encodedPayload = static::base64UrlEncode(
+                json_encode($paramsRequest, JSON_UNESCAPED_SLASHES | JSON_PRESERVE_ZERO_FRACTION | JSON_UNESCAPED_UNICODE)
+            );
+            $hashedSig      = static::hashSignature($encodedPayload, $appSecret);
+            $sig            = static::base64UrlEncode($hashedSig);
+            static::validateSignature($sig, $signedRequest);
+        }
     }
 
     /**
