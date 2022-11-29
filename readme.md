@@ -22,184 +22,129 @@
 +   环境要求：php >=5.5
 +   依赖composer
          
-##使用步骤
-1.	composer require yd/ydsdk
+## 安装
 
-2.	实例化
+composer require yd/ydsdk
 
+## 使用
 ```
-    //sdk
-    require 'xx/vendor/autoload.php';
-    $app_id = 'xx';
-    $app_secret = 'xx';
-    $client_ip = 'xx';
-    $client_userAgent = '';
-    $base_api_url = 'http://apiv4.yundun.cn/V4/';
-    ;base_api_url = 'http://127.0.0.1/V4/'
-    $host = 'apiv4.yundun.cn';
-    $handler = 'guzzle'; //curl/guzzle默认guzzle,guzzle支持异步调用，curl驱动目前未实现异步
-    $sdk = new YundunSDK (
-        [
-        'app_id'=>$app_id, 
-        'app_secret'=>$app_secret, 
-        'base_api_url' = 'http://127.0.0.1/V4/',
-        'host' => 'apiv4.xx.cn',
-        'client_ip'=>$client_ip, 
-        'client_userAgent'=>$client_userAgent, 
-        'handler'=> $handler,
-        'syncExceptionOutputCode' => 0,
-        'syncExceptionOutputMessage' =>'同步请求异常信息提示',
-        'asyncExceptionOutputCode' => 0,
-        'asyncExceptionOutputMessage' => '异步请求异常信息提示'
-        'log' => true,  //是否记录sdk相关日志
-        'logfileWin' => 'E:/sdkV4.log', //windows日志路径
-        'logfileLinux' => '/tmp/sdkV4.log' //linux日志路径
-        ]
-    );
+error_reporting(E_ALL);
+ini_set('display_errors', 'on');
 
-```
+require './vendor/autoload.php';
 
-3. 调用
-
->   format json返回json，xml返回xml
-
->   body 支持传递json和数组
-
->   urlParams会拼接在url后面
-
->   支持get/post/patch/put/delete方法
+try {
+    $config = [
+        'app_id'       => getenv('SDK_APP_ID'),
+        'app_secret'   => getenv('SDK_APP_SECERT'),
+        'base_api_url' => getenv('SDK_API_PRE'),
+        //'log'          => true,           //是否记录sdk相关日志
+        //'logfileLinux' => '/tmp/sdk.log', //linux日志路径
+    ];
+    $sdk = new \YunDunSdk\YunDunSdk($config);
 
 
-## sync request
+    // GET 请求
+    $request = [
+        'url' => 'test.sdk.get',
+        'query' => [
+            "page" => 1,
+            "pagesize" => 10,
+            "data" => [
+                "name" => "name名称",
+                "domain" => "baidu.com",
+            ],
+        ],
+        'body' => [],
+    ];
+    $result = $sdk->get($request);
+    $jsonData = json_decode($result, 1);
+    print_r("api: ".$request['url']."\n");
+    print_r("raw: ".$result."\n");
+    print_r($jsonData);
+    print_r("\n");
 
-+ get
+    // POST 请求
+    $request = [
+        'url' => 'test.sdk.post',
+        'query' => [],
+        'body' => [
+            "page" => 1,
+            "pagesize" => 10,
+            "data" => [
+                "name" => "name名称",
+                "domain" => "baidu.com",
+            ],
+        ],
+    ];
+    $result = $sdk->post($request);
+    $jsonData = json_decode($result, 1);
+    print_r("api: ".$request['url']."\n");
+    print_r("raw: ".$result."\n");
+    print_r($jsonData);
+    print_r("\n");
 
-```
+    // PATCH 请求
+    $request = [
+        'url' => 'test.sdk.patch',
+        'query' => [],
+        'body' => [
+            "page" => 1,
+            "pagesize" => 10,
+            "data" => [
+                "name" => "name名称",
+                "domain" => "baidu.com",
+            ],
+        ],
+    ];
+    $result = $sdk->patch($request);
+    $jsonData = json_decode($result, 1);
+    print_r("api: ".$request['url']."\n");
+    print_r("raw: ".$result."\n");
+    print_r($jsonData);
+    print_r("\n");
 
-$request = array(
-    'url' => 'api/version',
-    'body' => '',
-    'headers' => [
-        'format' => 'json',
-    ],
-    'timeout' => 10,
-    'query' => [
-        'params1' => 1,
-        'params2' => 2
-    ],
-);
-try{
-    $res = $sdk->get($request);
-}catch (\Exception $e){
-    var_dump($e->getCode());
-    var_dump($e->getMessage());
+    // PUT 请求
+    $request = [
+        'url' => 'test.sdk.put',
+        'query' => [],
+        'body' => [
+            "page" => 1,
+            "pagesize" => 10,
+            "data" => [
+                "name" => "name名称",
+                "domain" => "baidu.com",
+            ],
+        ],
+    ];
+    $result = $sdk->put($request);
+    $jsonData = json_decode($result, 1);
+    print_r("api: ".$request['url']."\n");
+    print_r("raw: ".$result."\n");
+    print_r($jsonData);
+    print_r("\n");
+
+    // DELETE 请求
+    $request = [
+        'url' => 'test.sdk.delete',
+        'query' => [],
+        'body' => [
+            "page" => 1,
+            "pagesize" => 10,
+            "data" => [
+                "name" => "name名称",
+                "domain" => "baidu.com",
+            ],
+        ],
+    ];
+    $result = $sdk->delete($request);
+    $jsonData = json_decode($result, 1);
+    print_r("api: ".$request['url']."\n");
+    print_r("raw: ".$result."\n");
+    print_r($jsonData);
+} catch(\Exception $e) {
+    var_dump("code: " + $e->getCode() + " message: " + $e->getMessage());
 }
-exit($res);
-
-```
-
-+ post/put/patch/delete
-
-```
-
-$request = array(
-    'url' => 'api/version',
-    'body' => json_encode([
-        'body1' => 1,
-        'body2' => 2,
-    ]),
-    'headers' => [
-        'format' => 'json',
-    ],
-    'timeout' => 10,
-    'query' => [
-        'params1' => 1,
-        'params2' => 2
-    ],
-);
-try{
-    $res = $sdk->post($request);
-}catch (\Exception $e){
-    var_dump($e->getCode());
-    var_dump($e->getMessage());
-}
-exit($res);
-
-```
-
-
-## async request
-
-+ get
-
-```
-
-$request = array(
-    'url' => 'api/version',
-    'body' => '',
-    'headers' => [
-        'format' => 'json',
-    ],
-    'timeout' => 10,
-    'query' => [
-        'params1' => 1,
-        'params2' => 2
-    ],
-    'options' => [
-        'async' => true,
-        'callback' => function($response){
-            $body = $response->getBody->getContents();
-            echo $body;
-            exit;
-        },
-        'exception' => function($exception){}
-    ]
-);
-try{
-    $sdk->getAsync($request);
-}catch (\Exception $e){
-    var_dump($e->getCode());
-    var_dump($e->getMessage());
-}
-
-
-```
-
-+ post/put/patch/delete
-
-```
-
-$request = array(
-    'url' => 'api/version',
-    'body' => json_encode([
-        'body1' => 1,
-        'body2' => 2,
-    ]),
-    'headers' => [
-        'format' => 'json',
-    ],
-    'timeout' => 10,
-    'query' => [
-        'params1' => 1,
-        'params2' => 2
-    ],
-    'options' => [
-        'async' => true,
-        'callback' => function($response){
-            $body = $response->getBody->getContents();
-            echo $body;
-            exit;
-        },
-        'exception' => function($exception){}
-    ]
-);
-try{
-    $sdk->postAsync($request);
-}catch (\Exception $e){
-    var_dump($e->getCode());
-    var_dump($e->getMessage());
-}
-
 ```
 
 ## demo 获取友情链接，如果可以获取到数据，说明api接口可以调通
