@@ -10,7 +10,7 @@
 
 # YUNDUN API PHP SDK legend
 
-+	接口基地址： 'http://apiv4.yundun.cn/V4/';
++	接口基地址： 'https://apiv4.yundun.com/V4/';
 +	接口遵循RESTful,默认请求体json,接口默认返回json
 +	app_id, app_secret 联系技术客服，先注册一个云盾的账号，用于申请绑定api身份
 
